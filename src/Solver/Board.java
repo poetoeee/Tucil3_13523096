@@ -2,10 +2,12 @@ package Solver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays; 
 import java.util.Objects;
+import java.util.Set;
 
 public class Board {
     private final int rows;
@@ -336,5 +338,55 @@ public class Board {
         int result = Objects.hash(rows, cols, exitX, exitY);
         result = 31 * result + pieces.hashCode(); // Piece.hashCode() harus konsisten dengan Piece.equals()
         return result;
+    }
+
+    public int calculateBlockingPiecesHeuristic() {
+        Piece primaryPiece = this.getPieceById('P');
+        if (primaryPiece == null) {
+            System.err.println("Error di heuristik: Primary piece 'P' tidak ditemukan!");
+            return Integer.MAX_VALUE; 
+        }
+
+        if (this.isGoalState()) {
+            return 0;
+        }
+
+        Set<Character> blockingPieces = new HashSet<>();
+        char[][] grid = this.gridRepresentation; 
+
+        if (primaryPiece.getOrientation() == Orientation.HORIZONTAL) {
+            if (this.exitX == 0) { // Pintu keluar di kiri
+                for (int c = primaryPiece.getX() - 1; c >= 0; c--) {
+                    if (grid[primaryPiece.getY()][c] != '.' && grid[primaryPiece.getY()][c] != primaryPiece.getId()) {
+                        blockingPieces.add(grid[primaryPiece.getY()][c]);
+                    }
+                }
+            } else { // Pintu keluar di kanan (this.exitX == this.cols - 1)
+                for (int c = primaryPiece.getX() + primaryPiece.getLength(); c < this.cols; c++) {
+                    if (grid[primaryPiece.getY()][c] != '.' && grid[primaryPiece.getY()][c] != primaryPiece.getId()) {
+                        blockingPieces.add(grid[primaryPiece.getY()][c]);
+                    }
+                }
+            }
+        } else { // Primary Piece VERTIKAL
+            if (this.exitY == 0) { // Pintu keluar di atas
+                for (int r = primaryPiece.getY() - 1; r >= 0; r--) {
+                    if (grid[r][primaryPiece.getX()] != '.' && grid[r][primaryPiece.getX()] != primaryPiece.getId()) {
+                        blockingPieces.add(grid[r][primaryPiece.getX()]);
+                    }
+                }
+            } else { // Pintu keluar di bawah (this.exitY == this.rows - 1)
+                for (int r = primaryPiece.getY() + primaryPiece.getLength(); r < this.rows; r++) {
+                    if (grid[r][primaryPiece.getX()] != '.' && grid[r][primaryPiece.getX()] != primaryPiece.getId()) {
+                        blockingPieces.add(grid[r][primaryPiece.getX()]);
+                    }
+                }
+            }
+        }
+        int hValue = blockingPieces.size();
+        if (hValue == 0 && !this.isGoalState()) {
+            hValue = 1;
+        }
+        return hValue;
     }
 }

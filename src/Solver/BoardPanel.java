@@ -134,24 +134,19 @@ public class BoardPanel extends JPanel {
             pieceHeight = piece.getLength() * CELL_SIZE;
         }
 
-        // Tentukan warna piece
         if (piece.isPrimary()) {
-            g2d.setColor(Color.RED);
+            g2d.setColor(Color.BLUE);
         } else {
-            // Warna acak sederhana berdasarkan ID piece untuk variasi
-            // Anda bisa membuat pemetaan warna yang lebih konsisten jika mau
-            int hash = Math.abs(Character.hashCode(piece.getId()));
-            // Batasi nilai agar tidak terlalu gelap atau terlalu terang
-            int r = 50 + (hash % 150); 
-            int g = 50 + ((hash / 150) % 150);
-            int b = 50 + ((hash / (150*150)) % 150);
+            int r = 0; 
+            int g = 0;
+            int b = 102;
             g2d.setColor(new Color(r, g, b));
         }
 
         g2d.fillRect(pieceX, pieceY, pieceWidth, pieceHeight);
 
         // Gambar outline piece dan ID-nya
-        g2d.setColor(Color.BLACK);
+        g2d.setColor(Color.WHITE);
         g2d.drawRect(pieceX, pieceY, pieceWidth, pieceHeight);
         
         // Pusatkan ID piece
