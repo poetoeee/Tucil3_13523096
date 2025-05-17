@@ -126,9 +126,10 @@ public class Main {
             "../test/sample_k_kanan.txt",
             "../test/sample_k_kiri.txt",
             "../test/sample_k_atas.txt",
-            "../test/sample_k_bawah.txt"
+            "../test/sample_k_bawah.txt",
+            "../test/sample_no_solution.txt"
         };
-        String filePathToTest = testFilePaths[2]; 
+        String filePathToTest = testFilePaths[0]; 
 
         System.out.println("\n======= Memproses File: " + filePathToTest + " =======");
 
@@ -137,71 +138,81 @@ public class Main {
             initialBoardFromFile = FileParser.parseFile(filePathToTest);
         } catch (IOException e) {
             System.err.println("Gagal memproses file: " + filePathToTest + " - " + e.getMessage());
+            e.printStackTrace();
             final String errorMessage = "Gagal memuat file board: " + filePathToTest + "\nError: " + e.getMessage();
-            SwingUtilities.invokeLater(() ->
-                JOptionPane.showMessageDialog(null, errorMessage, "Error Parsing File", JOptionPane.ERROR_MESSAGE)
-            );
-            return; 
+            JOptionPane.showMessageDialog(null, errorMessage, "Error Parsing File", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        boardHistory.add(new Board(initialBoardFromFile));
-        currentBoardIndex = 0;
+        System.out.println("Board Awal berhasil diparsing dari file:");
+        initialBoardFromFile.printBoard(); 
 
         SwingUtilities.invokeLater(() -> {
-            createAndShowGUI(boardHistory.get(currentBoardIndex)); 
-            updateButtonStates(); 
+            createAndShowGUI(new Board(initialBoardFromFile)); 
             guiReadyLatch.countDown(); 
         });
 
         try {
-            System.out.println("[Main] Menunggu GUI (boardPanel) siap...");
             guiReadyLatch.await(); 
-            System.out.println("[Main] GUI (boardPanel) SUDAH SIAP!");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Thread diinterupsi saat menunggu GUI siap.");
-            return; 
+            return;
         }
 
-        System.out.println("Board Awal (Konsol) - ditampilkan dari histori:");
-        boardHistory.get(currentBoardIndex).printBoard();
-        
-        System.out.println("\n======= Pengujian Gerakan Piece (Konsol) & Pengisian Histori =======");
-        Board currentBoardForLogic = boardHistory.get(currentBoardIndex); 
+        boardHistory.clear();
+        boardHistory.add(new Board(initialBoardFromFile)); 
+        currentBoardIndex = 0;
+        displayBoardFromHistory(currentBoardIndex);
+        updateButtonStates();
 
-        for (int i = 0; i < 2; i++) { 
-            if (currentBoardForLogic.isGoalState()) {
-                System.out.println("[Main] Papan sudah dalam goal state pada iterasi ke-" + i + ", tidak ada gerakan lagi.");
-                break;
+
+        System.out.println("\n======= Memulai Pencarian Solusi dengan UCS =======");
+        RushHourSolver solver = new RushHourSolver();
+        RushHourSolver.Solution ucsSolution = solver.solveWithUCS(initialBoardFromFile); 
+
+        System.out.println("\n======= Hasil UCS =======");
+        System.out.println("Solusi Ditemukan: " + ucsSolution.EsolusiDitemukan);
+        System.out.println("Waktu Eksekusi (ms): " + ucsSolution.executionTimeMillis);
+        System.out.println("Node Dikunjungi (diambil dari antrian): " + ucsSolution.nodesVisited);
+
+        if (ucsSolution.EsolusiDitemukan) {
+            if (ucsSolution.moves != null) {
+                System.out.println("Jumlah Langkah Solusi: " + ucsSolution.moves.size());
+                System.out.println("Langkah-langkah (Gerakan):");
+                int stepNum = 1;
+                for (Move move : ucsSolution.moves) {
+                    System.out.println("  Gerakan " + stepNum++ + ": Piece '" + move.getPieceId() + "' ke " + move.getDirection() + " sebanyak " + move.getSteps() + " unit.");
+                }
+            } else {
+                System.out.println("Objek solusi tidak memiliki daftar gerakan (moves).");
             }
 
-            List<Move> possibleMoves = currentBoardForLogic.getAllPossibleMoves();
-            if (possibleMoves.isEmpty()) {
-                System.out.println("[Main] Tidak ada gerakan yang mungkin dari state saat ini pada iterasi ke-" + i + ".");
-                break;
+            boardHistory.clear(); 
+            if (ucsSolution.path != null && !ucsSolution.path.isEmpty()) {
+                System.out.println("Jumlah State dalam Path Solusi: " + ucsSolution.path.size());
+                for (Board boardStateFromPath : ucsSolution.path) {
+                    boardHistory.add(new Board(boardStateFromPath)); 
+                }
+                currentBoardIndex = -1; 
+                if (!boardHistory.isEmpty()) {
+                    System.out.println("Menampilkan state awal dari solusi di GUI...");
+                    displayBoardFromHistory(0);
+                }
+            } else {
+                 System.out.println("Path board tidak tersedia di objek solusi untuk ditampilkan di GUI.");
             }
-
-            Move moveToMake = possibleMoves.get(0); 
-            System.out.println("\n[Main] Iterasi ke-" + i + ": Mencoba mengaplikasikan gerakan: " + moveToMake.toString());
-
-            Board nextBoardState = currentBoardForLogic.generateNewBoardState(moveToMake);
-            System.out.println("[Main] Iterasi ke-" + i + ": Board Setelah Gerakan (Konsol):");
-            nextBoardState.printBoard();
-
-            addBoardToHistoryAndDisplay(nextBoardState);
-            currentBoardForLogic = nextBoardState; 
-
-            if (nextBoardState.isGoalState()) {
-                System.out.println("[Main]  -> Ini adalah goal state setelah gerakan pada iterasi ke-" + i + ".");
-            }
+        } else {
+            System.out.println("Tidak ada solusi yang ditemukan oleh UCS.");
         }
+        updateButtonStates(); 
 
         System.out.println("\n=======================================");
-        System.out.println("Setup selesai. Gunakan tombol Next/Prev di GUI untuk navigasi.");
-        System.out.println("Total state dalam histori: " + boardHistory.size());
-
-        if (!boardHistory.isEmpty()) {
-            displayBoardFromHistory(0);
+        if (ucsSolution.EsolusiDitemukan) {
+            System.out.println("Pencarian UCS selesai. Gunakan tombol Next/Prev di GUI untuk navigasi solusi.");
+        } else {
+            System.out.println("Pencarian UCS selesai. Tidak ada solusi untuk file: " + filePathToTest);
         }
+        System.out.println("Total state dalam histori GUI saat ini: " + boardHistory.size());
     }
 }
