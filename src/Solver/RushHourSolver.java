@@ -113,4 +113,49 @@ public class RushHourSolver {
         long endTime = System.currentTimeMillis();
         return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
     }
+
+    public Solution solveWithAStar(Board initialBoard) {
+        long startTime = System.currentTimeMillis();
+        int nodesVisitedCount = 0;
+
+        PriorityQueue<SolverNode> openSet = new PriorityQueue<>(new SolverNode.AStarComparator());
+        Set<Board> closedSet = new HashSet<>();
+        
+        int startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        SolverNode startNode = new SolverNode(initialBoard, startHCost);
+        openSet.add(startNode);
+        // if (usingOpenSetMap) openSetMap.put(initialBoard, startNode);
+
+        while (!openSet.isEmpty()) {
+            SolverNode currentNode = openSet.poll();
+            nodesVisitedCount++;
+
+            if (closedSet.contains(currentNode.getBoardState())) {
+                continue;
+            }
+            closedSet.add(currentNode.getBoardState());
+
+            if (currentNode.getBoardState().isGoalState()) {
+                long endTime = System.currentTimeMillis();
+                return new Solution(currentNode.getMovesToSolution(), currentNode.getPathToSolution(), nodesVisitedCount, endTime - startTime, true);
+            }
+
+            List<Move> possibleMoves = currentNode.getBoardState().getAllPossibleMoves();
+            for (Move move : possibleMoves) {
+                Board nextBoardState = currentNode.getBoardState().generateNewBoardState(move);
+
+                if (closedSet.contains(nextBoardState)) {
+                    continue; 
+                }
+
+                int newGCost = currentNode.getGCost() + 1;
+                int nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
+                SolverNode successorNode = new SolverNode(nextBoardState, currentNode, move, newGCost, nextHCost);
+
+                openSet.add(successorNode);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
+    }
 }

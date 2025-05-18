@@ -47,7 +47,7 @@ public class Main {
         JButton loadFileButton = new JButton("Load Test File");
         loadFileButton.addActionListener(e -> loadNewTestFile());
 
-        String[] algorithms = {"UCS", "Greedy BFS"}; // Nanti bisa tambah A*
+        String[] algorithms = {"UCS", "Greedy BFS", "A*"}; 
         algorithmChooser = new JComboBox<>(algorithms);
 
         solveButton = new JButton("Solve!");
@@ -75,8 +75,6 @@ public class Main {
         frame.pack();
         frame.setLocationRelativeTo(null); 
         frame.setVisible(true);
-
-        System.out.println("[Main.createAndShowGUI] GUI Frame dibuat dan ditampilkan.");
     }
 
     private static void loadNewTestFile() {
@@ -106,7 +104,6 @@ public class Main {
                 displayBoardFromHistory(currentBoardIndex);
                 updateButtonStates();
                 if(solveButton != null) solveButton.setEnabled(true); 
-
             } catch (IOException ex) {
                 System.err.println("Gagal memproses file: " + filePathToTest + " - " + ex.getMessage());
                 ex.printStackTrace();
@@ -139,6 +136,8 @@ public class Main {
             solution = solver.solveWithUCS(boardToSolve);
         } else if ("Greedy BFS".equals(selectedAlgorithm)) {
             solution = solver.solveWithGreedyBFS(boardToSolve);
+        } else if ("A*".equals(selectedAlgorithm)) {
+            solution = solver.solveWithAStar(boardToSolve);
         } else {
             System.err.println("Algoritma tidak dikenal: " + selectedAlgorithm);
             JOptionPane.showMessageDialog(frame, "Algoritma tidak dikenal: " + selectedAlgorithm, "Error", JOptionPane.ERROR_MESSAGE);

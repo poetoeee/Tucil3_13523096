@@ -49,6 +49,10 @@ public class SolverNode {
         return hCost;
     }
 
+    public int getFCost() {
+        return this.gCost + this.hCost; 
+    }
+
     public List<Board> getPathToSolution() {
         List<Board> path = new ArrayList<>();
         SolverNode currentNode = this; 
@@ -99,6 +103,7 @@ public class SolverNode {
                "boardStateHash=" + (boardState != null ? boardState.hashCode() : "null") +
                ", gCost=" + gCost +
                ", hCost=" + hCost +
+                ", fCost=" + getFCost() +
                ", parentExists=" + (parent != null) +
                (moveThatLedToThisState != null ? ", move=" + moveThatLedToThisState.getPieceId() + "-" + moveThatLedToThisState.getDirection() : "") +
                '}';
@@ -117,6 +122,19 @@ public class SolverNode {
         @Override
         public int compare(SolverNode node1, SolverNode node2) {
             return Integer.compare(node1.getHCost(), node2.getHCost());
+        }
+    }
+
+    // Comparator untuk A* (berdasarkan fCost = gCost + hCost)
+    public static class AStarComparator implements Comparator<SolverNode> {
+        @Override
+        public int compare(SolverNode node1, SolverNode node2) {
+            int f1 = node1.getFCost(); 
+            int f2 = node2.getFCost(); 
+            if (f1 == f2) {
+                return Integer.compare(node1.getHCost(), node2.getHCost());
+            }
+            return Integer.compare(f1, f2);
         }
     }
 }
