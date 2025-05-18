@@ -1,7 +1,10 @@
-4 4
+7 7
 4
   K 
-BAA.
-B.PD
-B.PD
-CCCC
+BAAAF..
+B.PDF..
+B.PDF..
+CCCCC..
+.......
+.......
+.......

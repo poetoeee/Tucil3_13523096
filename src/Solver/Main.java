@@ -1,30 +1,28 @@
 package Solver;
 
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JLabel; // Import JLabel
-import javax.swing.JSeparator; // Import JSeparator (opsional)
-import javax.swing.SwingConstants; // Import SwingConstants (opsional, untuk JSeparator)
-import javax.swing.JOptionPane;
-import javax.swing.JComboBox;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-// CountDownLatch tidak lagi terlalu krusial karena aksi dipicu pengguna
-// import java.util.concurrent.CountDownLatch; 
-import java.io.IOException;
-import java.io.File;
+import javax.swing.JButton; 
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Main {
 
     private static BoardPanel boardPanel;
     private static JFrame frame;
-    // private static final CountDownLatch guiReadyLatch = new CountDownLatch(1); // Kurang relevan sekarang
+    // private static final CountDownLatch guiReadyLatch = new CountDownLatch(1); 
 
     private static List<Board> boardHistory = new ArrayList<>();
     private static int currentBoardIndex = -1;
@@ -34,15 +32,14 @@ public class Main {
     private static JButton solveButton;
     private static JComboBox<String> algorithmChooser;
 
-    // Variabel baru untuk menampilkan statistik
     private static JLabel nodesVisitedLabel;
     private static JLabel executionTimeLabel;
-    private static JLabel solutionStepsLabel; // Opsional: untuk jumlah langkah solusi
+    private static JLabel solutionStepsLabel; 
 
     private static Board initialBoardForSolving;
 
     private static void createAndShowGUI(Board boardForInitialDisplay) {
-        frame = new JFrame("Rush Hour Solver - Stima Kelompok Anda");
+        frame = new JFrame("13523096 Solver");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         boardPanel = new BoardPanel();
@@ -78,7 +75,7 @@ public class Main {
         controlPanel.add(executionTimeLabel);
         
         controlPanel.add(new JSeparator(SwingConstants.VERTICAL));
-        solutionStepsLabel = new JLabel("Solution Steps: -"); // Label baru untuk langkah solusi
+        solutionStepsLabel = new JLabel("Solution Steps: -"); 
         controlPanel.add(solutionStepsLabel);
 
 
@@ -97,12 +94,10 @@ public class Main {
         frame.getContentPane().add(navigationPanel, BorderLayout.SOUTH);
 
         frame.pack();
-        frame.setSize(1000, 800); // Ukuran default
-        // frame.setMinimumSize(frame.getSize()); // Agar bisa di-resize tapi tidak terlalu kecil
+        frame.setSize(750, 750); 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        System.out.println("[Main.createAndShowGUI] GUI Frame dibuat dan ditampilkan.");
     }
 
     private static void loadNewTestFile() {
@@ -111,7 +106,6 @@ public class Main {
         if (testDir.exists() && testDir.isDirectory()) {
             fileChooser.setCurrentDirectory(testDir);
         } else {
-            // Coba relatif dari direktori eksekusi jika ../test tidak ada
             File localTestDir = new File("test");
             if (localTestDir.exists() && localTestDir.isDirectory()) {
                 fileChooser.setCurrentDirectory(localTestDir);
@@ -293,8 +287,8 @@ public class Main {
         if (index >= 0 && index < boardHistory.size()) {
             currentBoardIndex = index;
             Board boardToShow = boardHistory.get(currentBoardIndex);
-            updateGUIdisplay(boardToShow); // Ini sudah memanggil invokeLater
-            updateButtonStates(); // Ini juga sudah memanggil invokeLater
+            updateGUIdisplay(boardToShow); 
+            updateButtonStates(); 
         }
     }
 
@@ -314,7 +308,7 @@ public class Main {
         System.out.println("Selamat Datang di Solver Rush Hour!");
         SwingUtilities.invokeLater(() -> {
             createAndShowGUI(null);
-            updateButtonStates(); // Panggil sekali untuk state awal tombol navigasi
+            updateButtonStates(); 
         });
     }
 }
