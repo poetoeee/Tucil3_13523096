@@ -107,7 +107,7 @@ public class RushHourSolver {
                 Board nextBoardState = currentNode.getBoardState().generateNewBoardState(move);
 
                 if (!closedSet.contains(nextBoardState)) {
-                    int newGCost = currentNode.getGCost() + 1; // Tetap hitung gCost untuk informasi
+                    int newGCost = currentNode.getGCost() + 1; 
                     int nextHCost;
                     if (heuristicType.equals("Blocking Pieces")) {
                         nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
@@ -177,5 +177,69 @@ public class RushHourSolver {
         }
         long endTime = System.currentTimeMillis();
         return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
+    }
+
+    private int idsNodesVisitedTotal;
+    public Solution solveWithIDS(Board initialBoard) {
+        long startTime = System.currentTimeMillis();
+        idsNodesVisitedTotal = 0; 
+        SolverNode startNode = new SolverNode(initialBoard, 0); 
+        for (int depthLimit = 0; ; depthLimit++) { 
+            System.out.println("IDS: Mencoba dengan depthLimit = " + depthLimit);
+            Set<Board> visitedInCurrentDls = new HashSet<>();
+
+            SolverNode solutionNode = dls(startNode, depthLimit, 0, visitedInCurrentDls);
+
+            if (solutionNode != null) {
+                long endTime = System.currentTimeMillis();
+                List<Move> movesToSolution = solutionNode.getMovesToSolution();
+                List<Board> pathToSolution = solutionNode.getPathToSolution();
+                System.out.println("IDS menemukan solusi pada kedalaman: " + solutionNode.getGCost());
+                return new Solution(movesToSolution, pathToSolution, idsNodesVisitedTotal, endTime - startTime, true);
+            }
+
+            if (idsNodesVisitedTotal > 2000000 && depthLimit > 30) { // Batas pengaman sementara
+                System.out.println("IDS: Melebihi batas iterasi/node, kemungkinan tidak ada solusi atau solusi sangat dalam.");
+                break;
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        return new Solution(Collections.emptyList(), Collections.emptyList(), idsNodesVisitedTotal, endTime - startTime, false);
+    }
+
+    private SolverNode dls(SolverNode currentNode, int depthLimit, int currentDepth, Set<Board> visitedInCurrentDls) {
+        idsNodesVisitedTotal++; 
+
+        Board currentBoardState = currentNode.getBoardState();
+
+        if (currentBoardState.isGoalState()) {
+            return currentNode; 
+        }
+
+        if (currentDepth >= depthLimit) {
+            return null; 
+        }
+
+        if (visitedInCurrentDls.contains(currentBoardState)) {
+            return null; 
+        }
+        visitedInCurrentDls.add(currentBoardState);
+
+        List<Move> possibleMoves = currentBoardState.getAllPossibleMoves();
+
+        for (Move move : possibleMoves) {
+            Board nextBoardState = currentBoardState.generateNewBoardState(move);
+            SolverNode successorNode = new SolverNode(nextBoardState, currentNode, move, currentDepth + 1, 0); 
+
+            SolverNode resultNode = dls(successorNode, depthLimit, currentDepth + 1, visitedInCurrentDls);
+
+            if (resultNode != null) {
+                visitedInCurrentDls.remove(currentBoardState); 
+                return resultNode;
+            }
+        }
+
+        visitedInCurrentDls.remove(currentBoardState); 
+        return null; 
     }
 }

@@ -38,7 +38,7 @@ public class GUI {
         JButton loadFileButton = new JButton("Load Test File");
         loadFileButton.addActionListener(e -> loadNewTestFile()); 
 
-        String[] algorithms = {"UCS", "Greedy BFS", "A*"};
+        String[] algorithms = {"UCS", "Greedy BFS", "A*", "IDS"};
         algorithmChooser = new JComboBox<>(algorithms);
         
         topControlPanel.add(loadFileButton);
@@ -48,6 +48,22 @@ public class GUI {
         String[] heuristics = {"Blocking Pieces","Manhattan Distance"};
         heuristicChooser = new JComboBox<>(heuristics);
         topControlPanel.add(heuristicChooser);
+
+        algorithmChooser.addActionListener(e -> {
+            String selectedAlgorithm = (String) algorithmChooser.getSelectedItem();
+            if ("UCS".equals(selectedAlgorithm) || "IDS".equals(selectedAlgorithm)) {
+                heuristicChooser.setEnabled(false);
+            } else {
+                heuristicChooser.setEnabled(true);
+            }
+        });
+
+        String initialSelectedAlgorithm = (String) algorithmChooser.getSelectedItem();
+        if ("UCS".equals(initialSelectedAlgorithm) || "IDS".equals(initialSelectedAlgorithm)) {
+            heuristicChooser.setEnabled(false);
+        } else {
+            heuristicChooser.setEnabled(true);
+        }
         
         solveButton = new JButton("Solve!");
         solveButton.addActionListener(e -> solveCurrentBoard()); 
@@ -179,6 +195,8 @@ public class GUI {
                 solution = solver.solveWithGreedyBFS(boardToSolve, selectedHeuristic);
             } else if ("A*".equals(selectedAlgorithm)) {
                 solution = solver.solveWithAStar(boardToSolve, selectedHeuristic);
+            } else if ("IDS".equals(selectedAlgorithm)) {
+                solution = solver.solveWithIDS(boardToSolve);
             } else {
                 final String errorMsg = "Algoritma tidak dikenal: " + selectedAlgorithm;
                 System.err.println(errorMsg);
