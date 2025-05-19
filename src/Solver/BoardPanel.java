@@ -2,6 +2,7 @@ package Solver;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -15,7 +16,9 @@ public class BoardPanel extends JPanel {
     private final int PADDING = 20; 
 
     private final int MIN_BOARD_DIM_TARGET = 350;
-    private final int MAX_BOARD_DIM_TARGET = 550;
+    private final int MAX_BOARD_DIM_TARGET = 500;
+
+    private Font messageFont = new Font("Arial", Font.BOLD, 15);
 
     public BoardPanel() {}
 
@@ -93,8 +96,21 @@ public class BoardPanel extends JPanel {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         if (currentBoard == null || dynamicCellSize <= 0) {
-            g2d.drawString("Board not loaded or cell size invalid.", PADDING, PADDING + 25);
-            return;
+            String message = "Please load a test file to start.";
+
+            g2d.setFont(messageFont); 
+            FontMetrics fm = g2d.getFontMetrics();
+            int stringWidth = fm.stringWidth(message);
+            int stringHeight = fm.getAscent() - fm.getDescent(); 
+
+            int panelWidth = getWidth();
+            int panelHeight = getHeight();
+            int x = (panelWidth - stringWidth) / 2;
+            int y = (panelHeight - stringHeight) / 2 + fm.getAscent(); 
+
+            g2d.setColor(Color.DARK_GRAY); 
+            g2d.drawString(message, x, y);
+            return; 
         }
 
         int numCols = currentBoard.getCols();

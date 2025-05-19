@@ -49,7 +49,7 @@ public class Main {
         }
 
         // Panel Kontrol Atas
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton loadFileButton = new JButton("Load Test File");
         loadFileButton.addActionListener(e -> loadNewTestFile());
 
@@ -61,23 +61,8 @@ public class Main {
         solveButton.setEnabled(initialBoardForSolving != null);
 
         controlPanel.add(loadFileButton);
-        controlPanel.add(new JLabel("Algorithm:"));
         controlPanel.add(algorithmChooser);
         controlPanel.add(solveButton);
-
-        // Tambahkan JLabel untuk statistik
-        controlPanel.add(new JSeparator(SwingConstants.VERTICAL)); 
-        nodesVisitedLabel = new JLabel("Nodes Visited: -");
-        controlPanel.add(nodesVisitedLabel);
-
-        controlPanel.add(new JSeparator(SwingConstants.VERTICAL));
-        executionTimeLabel = new JLabel("Time (ms): -");
-        controlPanel.add(executionTimeLabel);
-        
-        controlPanel.add(new JSeparator(SwingConstants.VERTICAL));
-        solutionStepsLabel = new JLabel("Solution Steps: -"); 
-        controlPanel.add(solutionStepsLabel);
-
 
         // Panel Tombol Navigasi Bawah
         JPanel navigationPanel = new JPanel();
@@ -88,13 +73,28 @@ public class Main {
         navigationPanel.add(prevButton);
         navigationPanel.add(nextButton);
 
-        frame.getContentPane().setLayout(new BorderLayout());
+        JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
+        nodesVisitedLabel = new JLabel("Nodes Visited: -");
+        executionTimeLabel = new JLabel("Time (ms): -");
+        solutionStepsLabel = new JLabel("Solution Steps: -");
+
+        statsPanel.add(nodesVisitedLabel);
+        statsPanel.add(new JSeparator(SwingConstants.VERTICAL)); 
+        statsPanel.add(executionTimeLabel);
+        statsPanel.add(new JSeparator(SwingConstants.VERTICAL)); 
+        statsPanel.add(solutionStepsLabel);
+
+        JPanel bottomContainerPanel = new JPanel(new BorderLayout());
+        bottomContainerPanel.add(navigationPanel, BorderLayout.NORTH); 
+        bottomContainerPanel.add(statsPanel, BorderLayout.SOUTH); 
+
+        frame.getContentPane().setLayout(new BorderLayout(5, 5)); 
         frame.getContentPane().add(controlPanel, BorderLayout.NORTH);
         frame.getContentPane().add(boardPanel, BorderLayout.CENTER);
-        frame.getContentPane().add(navigationPanel, BorderLayout.SOUTH);
+        frame.getContentPane().add(bottomContainerPanel, BorderLayout.SOUTH);
 
         frame.pack();
-        frame.setSize(750, 750); 
+        frame.setSize(700, 700); 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
@@ -120,10 +120,8 @@ public class Main {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             String filePathToTest = selectedFile.getAbsolutePath();
-            System.out.println("\n======= Memproses File Baru: " + filePathToTest + " =======");
             try {
                 initialBoardForSolving = FileParser.parseFile(filePathToTest);
-                System.out.println("Board Awal berhasil diparsing dari file:");
                 initialBoardForSolving.printBoard();
 
                 boardHistory.clear();
@@ -216,11 +214,10 @@ public class Main {
             System.out.println("Solusi Ditemukan: " + finalSolution.EsolusiDitemukan);
 
             if (finalSolution.EsolusiDitemukan) {
-                if (finalSolution.moves != null) {
-                    System.out.println("Jumlah Langkah Solusi: " + finalSolution.moves.size());
-                } else {
-                    System.out.println("Objek solusi tidak memiliki daftar gerakan (moves).");
-                }
+                final String solutionMsg = "Solusi berhasil ditemukan dengan " + selectedAlgorithm + ".";
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(frame, solutionMsg, "Solusi Ditemukan", JOptionPane.INFORMATION_MESSAGE);
+                });
 
                 boardHistory.clear();
                 if (finalSolution.path != null && !finalSolution.path.isEmpty()) {
@@ -243,7 +240,6 @@ public class Main {
                 System.out.println("Tidak ada solusi yang ditemukan oleh " + selectedAlgorithm + ".");
                 final String noSolutionMsg = "Tidak ada solusi yang ditemukan oleh " + selectedAlgorithm + ".";
                 SwingUtilities.invokeLater(() -> {
-                    // solutionStepsLabel sudah diatur menjadi "N/A (No Solution)" di atas
                     JOptionPane.showMessageDialog(frame, noSolutionMsg, "Solusi Tidak Ditemukan", JOptionPane.INFORMATION_MESSAGE);
                 });
                 boardHistory.clear();
