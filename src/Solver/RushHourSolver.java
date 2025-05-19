@@ -179,6 +179,112 @@ public class RushHourSolver {
         return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
     }
 
+    private int idaNodesVisitedTotal;
+    private static final int IDA_FOUND = -1; 
+    private static final int IDA_NOT_FOUND_INCREASE_LIMIT = -2; 
+
+    public Solution solveWithIDAStar(Board initialBoard, String heuristicType) {
+        long startTime = System.currentTimeMillis();
+        idaNodesVisitedTotal = 0;
+
+        // Hitung h-cost awal
+        int initialHCost;
+        if ("Manhattan Distance".equals(heuristicType)) {
+            initialHCost = initialBoard.calculateManhattanDistanceHeuristic();
+        } else { 
+            initialHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        }
+
+        int fLimit = initialHCost;
+        SolverNode startNode = new SolverNode(initialBoard, null, null, 0, initialHCost);
+
+        final int MAX_IDA_ITERATIONS = 100; 
+        final int MAX_NODES_VISITED_IDA = 7000000; 
+
+        for (int iteration = 0; iteration < MAX_IDA_ITERATIONS; iteration++) {
+            System.out.println("IDA*: Iterasi " + (iteration + 1) + ", fLimit = " + fLimit + ", Total Nodes Sejauh Ini: " + idaNodesVisitedTotal);
+            Set<Board> pathCurrentlyExploring = new HashSet<>();
+            Object[] searchResult = ida_search(startNode, fLimit, heuristicType, pathCurrentlyExploring);
+            SolverNode solutionNode = (SolverNode) searchResult[0];
+            int nextFLimitCandidate = (Integer) searchResult[1];
+
+            if (solutionNode != null) { 
+                long endTime = System.currentTimeMillis();
+                List<Move> movesToSolution = solutionNode.getMovesToSolution();
+                List<Board> pathToSolution = solutionNode.getPathToSolution();
+                System.out.println("IDA* menemukan solusi dengan fCost = " + solutionNode.getFCost() + " (g=" + solutionNode.getGCost() + ", h=" + solutionNode.getHCost() + "), Total Nodes: " + idaNodesVisitedTotal);
+                return new Solution(movesToSolution, pathToSolution, idaNodesVisitedTotal, endTime - startTime, true);
+            }
+
+            if (nextFLimitCandidate == Integer.MAX_VALUE) {
+                System.out.println("IDA*: Tidak ada node lagi yang bisa dieksplorasi (nextFLimit adalah MAX_VALUE). Tidak ada solusi.");
+                break;
+            }
+            fLimit = nextFLimitCandidate;
+            if (idaNodesVisitedTotal >= MAX_NODES_VISITED_IDA) {
+                System.out.println("IDA*: Batas total node (" + MAX_NODES_VISITED_IDA + ") tercapai.");
+                break;
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("IDA*: Gagal menemukan solusi setelah semua iterasi atau batas tercapai. Total Nodes: " + idaNodesVisitedTotal);
+        return new Solution(Collections.emptyList(), Collections.emptyList(), idaNodesVisitedTotal, endTime - startTime, false);
+    }
+
+    private Object[] ida_search(SolverNode currentNode, int fLimit, String heuristicType, Set<Board> pathCurrentlyExploring) {
+        idaNodesVisitedTotal++;
+        Board currentBoardState = currentNode.getBoardState();
+        int currentFCost = currentNode.getFCost();
+
+        if (currentFCost > fLimit) {
+            return new Object[]{null, currentFCost};
+        }
+
+        if (currentBoardState.isGoalState()) {
+            return new Object[]{currentNode, currentFCost}; 
+        }
+
+        if (pathCurrentlyExploring.contains(currentBoardState)) {
+            return new Object[]{null, Integer.MAX_VALUE}; 
+        }
+        pathCurrentlyExploring.add(currentBoardState);
+
+        int minNextFLimit = Integer.MAX_VALUE; 
+        List<Move> possibleMoves = currentBoardState.getAllPossibleMoves();
+
+        for (Move move : possibleMoves) {
+            Board nextBoardState = currentBoardState.generateNewBoardState(move);
+            int gCostSuccessor = currentNode.getGCost() + 1;
+            int hCostSuccessor;
+
+            if ("Manhattan Distance".equals(heuristicType)) {
+                hCostSuccessor = nextBoardState.calculateManhattanDistanceHeuristic();
+            } else {
+                hCostSuccessor = nextBoardState.calculateBlockingPiecesHeuristic();
+            }
+
+            SolverNode successorNode = new SolverNode(nextBoardState, currentNode, move, gCostSuccessor, hCostSuccessor);
+
+            Object[] searchResult = ida_search(successorNode, fLimit, heuristicType, pathCurrentlyExploring);
+            SolverNode foundSolution = (SolverNode) searchResult[0];
+            int potentialNextFLimit = (Integer) searchResult[1];
+
+            if (foundSolution != null) { 
+                pathCurrentlyExploring.remove(currentBoardState); 
+                return new Object[]{foundSolution, 0}; 
+            }
+
+            if (potentialNextFLimit < minNextFLimit) {
+                minNextFLimit = potentialNextFLimit;
+            }
+        }
+
+        pathCurrentlyExploring.remove(currentBoardState); 
+        return new Object[]{null, minNextFLimit}; 
+    }
+
+
     private int idsNodesVisitedTotal;
     public Solution solveWithIDS(Board initialBoard) {
         long startTime = System.currentTimeMillis();

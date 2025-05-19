@@ -28,7 +28,7 @@ public class GUI {
     }
 
     private void createAndShow() {
-        frame = new JFrame("13523096 Solver"); 
+        frame = new JFrame("13523096 Solver!"); 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         boardPanel = new BoardPanel();
@@ -38,7 +38,7 @@ public class GUI {
         JButton loadFileButton = new JButton("Load Test File");
         loadFileButton.addActionListener(e -> loadNewTestFile()); 
 
-        String[] algorithms = {"UCS", "Greedy BFS", "A*", "IDS"};
+        String[] algorithms = {"UCS", "Greedy BFS", "A*", "IDA*", "IDS"};
         algorithmChooser = new JComboBox<>(algorithms);
         
         topControlPanel.add(loadFileButton);
@@ -195,6 +195,8 @@ public class GUI {
                 solution = solver.solveWithGreedyBFS(boardToSolve, selectedHeuristic);
             } else if ("A*".equals(selectedAlgorithm)) {
                 solution = solver.solveWithAStar(boardToSolve, selectedHeuristic);
+            } else if ("IDA*".equals(selectedAlgorithm)) {
+                solution = solver.solveWithIDAStar(boardToSolve, selectedHeuristic);
             } else if ("IDS".equals(selectedAlgorithm)) {
                 solution = solver.solveWithIDS(boardToSolve);
             } else {
