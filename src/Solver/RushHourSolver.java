@@ -1,12 +1,10 @@
 package Solver;
 
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList; 
-import java.util.Collections; 
-import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.Set;
 
 public class RushHourSolver {
 
@@ -68,14 +66,21 @@ public class RushHourSolver {
         return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
     }
 
-    public Solution solveWithGreedyBFS(Board initialBoard) {
+    public Solution solveWithGreedyBFS(Board initialBoard, String heuristicType) {
         long startTime = System.currentTimeMillis();
         int nodesVisitedCount = 0;
 
         PriorityQueue<SolverNode> openSet = new PriorityQueue<>(new SolverNode.GreedyBfsComparator());
         Set<Board> closedSet = new HashSet<>();
 
-        int startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        // int startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        int startHCost;
+        if (heuristicType.equals("Blocking Pieces")) {
+            startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        } else {
+            startHCost = initialBoard.calculateManhattanDistanceHeuristic();
+        } 
+
         SolverNode startNode = new SolverNode(initialBoard, startHCost); 
         openSet.add(startNode);
 
@@ -103,7 +108,12 @@ public class RushHourSolver {
 
                 if (!closedSet.contains(nextBoardState)) {
                     int newGCost = currentNode.getGCost() + 1; // Tetap hitung gCost untuk informasi
-                    int nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
+                    int nextHCost;
+                    if (heuristicType.equals("Blocking Pieces")) {
+                        nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
+                    } else {
+                        nextHCost = nextBoardState.calculateManhattanDistanceHeuristic();
+                    }
                     SolverNode successorNode = new SolverNode(nextBoardState, currentNode, move, newGCost, nextHCost);
                     openSet.add(successorNode);
                 } 
@@ -114,14 +124,19 @@ public class RushHourSolver {
         return new Solution(Collections.emptyList(), Collections.emptyList(), nodesVisitedCount, endTime - startTime, false);
     }
 
-    public Solution solveWithAStar(Board initialBoard) {
+    public Solution solveWithAStar(Board initialBoard, String heuristicType) {
         long startTime = System.currentTimeMillis();
         int nodesVisitedCount = 0;
 
         PriorityQueue<SolverNode> openSet = new PriorityQueue<>(new SolverNode.AStarComparator());
         Set<Board> closedSet = new HashSet<>();
         
-        int startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        int startHCost;
+        if (heuristicType.equals("Blocking Pieces")) {
+            startHCost = initialBoard.calculateBlockingPiecesHeuristic();
+        } else {
+            startHCost = initialBoard.calculateManhattanDistanceHeuristic();
+        }
         SolverNode startNode = new SolverNode(initialBoard, startHCost);
         openSet.add(startNode);
         // if (usingOpenSetMap) openSetMap.put(initialBoard, startNode);
@@ -149,7 +164,12 @@ public class RushHourSolver {
                 }
 
                 int newGCost = currentNode.getGCost() + 1;
-                int nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
+                int nextHCost;
+                if (heuristicType.equals("Blocking Pieces")) {
+                    nextHCost = nextBoardState.calculateBlockingPiecesHeuristic();
+                } else {
+                    nextHCost = nextBoardState.calculateManhattanDistanceHeuristic();
+                }
                 SolverNode successorNode = new SolverNode(nextBoardState, currentNode, move, newGCost, nextHCost);
 
                 openSet.add(successorNode);

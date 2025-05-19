@@ -17,6 +17,7 @@ public class GUI {
     private JButton prevButton;
     private JButton solveButton;
     private JComboBox<String> algorithmChooser;
+    private JComboBox<String> heuristicChooser;
     private JLabel nodesVisitedLabel;
     private JLabel executionTimeLabel;
     private JLabel solutionStepsLabel;
@@ -39,14 +40,18 @@ public class GUI {
 
         String[] algorithms = {"UCS", "Greedy BFS", "A*"};
         algorithmChooser = new JComboBox<>(algorithms);
-
+        
+        topControlPanel.add(loadFileButton);
+        topControlPanel.add(algorithmChooser);
+        
+        // topControlPanel.add(new JLabel("Heuristic (GBFS/A*):"));
+        String[] heuristics = {"Blocking Pieces","Manhattan Distance"};
+        heuristicChooser = new JComboBox<>(heuristics);
+        topControlPanel.add(heuristicChooser);
+        
         solveButton = new JButton("Solve!");
         solveButton.addActionListener(e -> solveCurrentBoard()); 
         solveButton.setEnabled(initialBoardForSolving != null);
-
-        topControlPanel.add(loadFileButton);
-        topControlPanel.add(new JLabel("Algorithm:"));
-        topControlPanel.add(algorithmChooser);
         topControlPanel.add(solveButton);
 
         JPanel navigationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -147,8 +152,13 @@ public class GUI {
             return;
         }
         String selectedAlgorithm = (String) algorithmChooser.getSelectedItem(); 
+        String selectedHeuristic = (String) heuristicChooser.getSelectedItem();
         if (selectedAlgorithm == null) {
             JOptionPane.showMessageDialog(frame, "Please select an algorithm.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (selectedHeuristic == null && (selectedAlgorithm.equals("Greedy BFS") || selectedAlgorithm.equals("A*"))) {
+            JOptionPane.showMessageDialog(frame, "Please select a heuristic for " + selectedAlgorithm + ".", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -159,7 +169,6 @@ public class GUI {
         });
 
         new Thread(() -> {
-            System.out.println("\n======= Memulai Pencarian Solusi dengan " + selectedAlgorithm + " =======");
             RushHourSolver solver = new RushHourSolver();
             RushHourSolver.Solution solution = null;
             Board boardToSolve = new Board(initialBoardForSolving);
@@ -167,9 +176,9 @@ public class GUI {
             if ("UCS".equals(selectedAlgorithm)) {
                 solution = solver.solveWithUCS(boardToSolve);
             } else if ("Greedy BFS".equals(selectedAlgorithm)) {
-                solution = solver.solveWithGreedyBFS(boardToSolve);
+                solution = solver.solveWithGreedyBFS(boardToSolve, selectedHeuristic);
             } else if ("A*".equals(selectedAlgorithm)) {
-                solution = solver.solveWithAStar(boardToSolve);
+                solution = solver.solveWithAStar(boardToSolve, selectedHeuristic);
             } else {
                 final String errorMsg = "Algoritma tidak dikenal: " + selectedAlgorithm;
                 System.err.println(errorMsg);
