@@ -13,7 +13,7 @@ public class BoardPanel extends JPanel {
     private Board currentBoard;
     private int dynamicCellSize = 50; 
     private final int DEFAULT_CELL_SIZE = 70;
-    private final int PADDING = 20; 
+    private final int PADDING = 1; 
 
     private final int MIN_BOARD_DIM_TARGET = 350;
     private final int MAX_BOARD_DIM_TARGET = 500;
@@ -160,9 +160,9 @@ public class BoardPanel extends JPanel {
         }
 
         if (piece.isPrimary()) {
-            g2d.setColor(Color.BLUE);
+            g2d.setColor(new Color(84,119,146, 255));
         } else {
-            g2d.setColor(new Color(0, 0, 102));
+            g2d.setColor(new Color(33,52,72, 255)); 
         }
         g2d.fillRect(pieceX, pieceY, pieceWidth, pieceHeight);
 
@@ -170,6 +170,7 @@ public class BoardPanel extends JPanel {
         g2d.drawRect(pieceX, pieceY, pieceWidth, pieceHeight);
 
         String pieceIdStr = String.valueOf(piece.getId());
+        g2d.setFont(new Font("Arial", Font.BOLD, dynamicCellSize / 4)); // Ukuran font dinamis
         FontMetrics fm = g2d.getFontMetrics();
         int stringWidth = fm.stringWidth(pieceIdStr);
         int stringAscent = fm.getAscent();
@@ -181,16 +182,14 @@ public class BoardPanel extends JPanel {
     }
 
     private void drawExitMarker(Graphics2D g2dOriginal, Piece primaryPiece, int boardOffsetX, int boardOffsetY, int boardPixelWidth, int boardPixelHeight) {
-        Graphics2D g2d = (Graphics2D) g2dOriginal.create();
-        Color exitBackgroundColor = new Color(0, 205, 0, 200); 
+        Graphics2D g2d = (Graphics2D) g2dOriginal.create(); 
 
-        int markerVisualThickness = Math.max(3, dynamicCellSize / 8); 
         int rectWidth = 0, rectHeight = 0;
         int markerX = 0, markerY = 0;
 
         if (primaryPiece.getOrientation() == Orientation.VERTICAL) {
             rectWidth = dynamicCellSize; 
-            rectHeight = markerVisualThickness;
+            rectHeight = 15;
             markerX = boardOffsetX + (currentBoard.getExitX() * dynamicCellSize);
             if (currentBoard.getExitY() == 0) { // Pintu keluar di ATAS
                 markerY = boardOffsetY - rectHeight; 
@@ -199,7 +198,7 @@ public class BoardPanel extends JPanel {
             }
         } else { // Orientasi HORIZONTAL
             rectHeight = dynamicCellSize; 
-            rectWidth = markerVisualThickness;
+            rectWidth = 15;
             markerY = boardOffsetY + (currentBoard.getExitY() * dynamicCellSize);
             if (currentBoard.getExitX() == 0) { // Pintu keluar di KIRI
                 markerX = boardOffsetX - rectWidth; 
@@ -207,7 +206,7 @@ public class BoardPanel extends JPanel {
                 markerX = boardOffsetX + boardPixelWidth; 
             }
         }
-        g2d.setColor(exitBackgroundColor);
+        g2d.setColor(new Color(191, 146, 100, 255));
         g2d.fillRect(markerX, markerY, rectWidth, rectHeight);
         g2d.dispose();
     }

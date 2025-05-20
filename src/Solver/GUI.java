@@ -22,24 +22,37 @@ public class GUI {
     private JLabel executionTimeLabel;
     private JLabel solutionStepsLabel;
     private Board initialBoardForSolving;
+    private final String DEFAULT_FILE_PATH = "test/init_board.txt";
 
     public GUI() {
         createAndShow();
+        loadDefaultBoard();
     }
 
     private void createAndShow() {
         frame = new JFrame("13523096 Solver!"); 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        
+        
         boardPanel = new BoardPanel();
         
         // Panel Kontrol Atas
         JPanel topControlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton loadFileButton = new JButton("Load Test File");
         loadFileButton.addActionListener(e -> loadNewTestFile()); 
+        loadFileButton.setBackground(new Color(191,146,100));
+        loadFileButton.setForeground(Color.WHITE);
+        loadFileButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loadFileButton.setPreferredSize(new Dimension(120, 30));
+        loadFileButton.setFocusPainted(false);
+        loadFileButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+        
         String[] algorithms = {"UCS", "Greedy BFS", "A*", "IDA*", "IDS"};
         algorithmChooser = new JComboBox<>(algorithms);
+        algorithmChooser.setPreferredSize(new Dimension(120, 30));
+        algorithmChooser.setFont(new Font("Arial", Font.BOLD, 12));
+        algorithmChooser.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
         topControlPanel.add(loadFileButton);
         topControlPanel.add(algorithmChooser);
@@ -47,6 +60,9 @@ public class GUI {
         // topControlPanel.add(new JLabel("Heuristic (GBFS/A*):"));
         String[] heuristics = {"Blocking Pieces","Manhattan Distance"};
         heuristicChooser = new JComboBox<>(heuristics);
+        heuristicChooser.setPreferredSize(new Dimension(150, 30));
+        heuristicChooser.setFont(new Font("Arial", Font.BOLD, 12));
+        heuristicChooser.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         topControlPanel.add(heuristicChooser);
 
         algorithmChooser.addActionListener(e -> {
@@ -66,6 +82,14 @@ public class GUI {
         }
         
         solveButton = new JButton("Solve!");
+        solveButton.setBackground(new Color(84, 119, 146)); 
+        solveButton.setForeground(Color.WHITE);
+        solveButton.setFont(new Font("Arial", Font.BOLD, 14));
+        solveButton.setPreferredSize(new Dimension(100, 30));
+        solveButton.setFocusPainted(false);
+        solveButton.setOpaque(true);
+        solveButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
         solveButton.addActionListener(e -> solveCurrentBoard()); 
         solveButton.setEnabled(initialBoardForSolving != null);
         topControlPanel.add(solveButton);
@@ -74,7 +98,21 @@ public class GUI {
         prevButton = new JButton("< Prev Step");
         nextButton = new JButton("Next Step >");
         prevButton.addActionListener(e -> showPreviousBoard()); 
-        nextButton.addActionListener(e -> showNextBoard());   
+        nextButton.addActionListener(e -> showNextBoard());
+        prevButton.setBackground(new Color(84, 119, 146)); 
+        prevButton.setForeground(Color.WHITE);
+        prevButton.setFont(new Font("Arial", Font.BOLD, 14));
+        prevButton.setPreferredSize(new Dimension(120, 30));
+        prevButton.setFocusPainted(false);
+        prevButton.setOpaque(true);
+        prevButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        nextButton.setBackground(new Color(84, 119, 146)); 
+        nextButton.setForeground(Color.WHITE);
+        nextButton.setFont(new Font("Arial", Font.BOLD, 14));
+        nextButton.setPreferredSize(new Dimension(120, 30));
+        nextButton.setFocusPainted(false);
+        nextButton.setOpaque(true);
+        nextButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         navigationPanel.add(prevButton);
         navigationPanel.add(nextButton);
 
@@ -90,9 +128,12 @@ public class GUI {
         statsPanel.add(new JSeparator(SwingConstants.VERTICAL));
         statsPanel.add(solutionStepsLabel);
 
+        statsPanel.setFont(new Font("Arial", Font.BOLD, 12));
+
         JPanel bottomContainerPanel = new JPanel(new BorderLayout());
         bottomContainerPanel.add(navigationPanel, BorderLayout.NORTH);
         bottomContainerPanel.add(statsPanel, BorderLayout.SOUTH);
+        // bottomContainerPanel.setBackground(new Color(68, 71, 90)); 
 
         frame.getContentPane().setLayout(new BorderLayout(5, 5));
         frame.getContentPane().add(topControlPanel, BorderLayout.NORTH);
@@ -106,6 +147,44 @@ public class GUI {
 
         updateButtonStates(); 
         displayInitialMessage(); 
+    }
+
+    private void loadBoardFromFile(String filePath) {
+        try {
+            initialBoardForSolving = FileParser.parseFile(filePath); 
+            System.out.println("Successfully loaded default board: " + filePath);
+            initialBoardForSolving.printBoard(); 
+
+            boardHistory.clear();
+            boardHistory.add(new Board(initialBoardForSolving)); 
+            currentBoardIndex = 0;
+            displayBoardFromHistory(currentBoardIndex);
+            solveButton.setEnabled(true);
+
+            SwingUtilities.invokeLater(() -> {
+                nodesVisitedLabel.setText("Nodes Visited: -");
+                executionTimeLabel.setText("Time (ms): -");
+                solutionStepsLabel.setText("Solution Steps: -");
+            });
+
+        } catch (IOException ex) {
+            System.err.println("Gagal memproses file default: " + filePath + " - " + ex.getMessage());
+            initialBoardForSolving = null; 
+            solveButton.setEnabled(false);
+            displayInitialMessage(); 
+        }
+    }
+
+    private void loadDefaultBoard() {
+        File defaultFile = new File(DEFAULT_FILE_PATH);
+        if (defaultFile.exists() && !defaultFile.isDirectory()) {
+            loadBoardFromFile(DEFAULT_FILE_PATH);
+        } else {
+            File alternativeDefaultFile = new File("../" + DEFAULT_FILE_PATH);
+            if (alternativeDefaultFile.exists() && !alternativeDefaultFile.isDirectory()){
+                loadBoardFromFile("../" + DEFAULT_FILE_PATH);
+            } 
+        }
     }
 
     private void displayInitialMessage() {
