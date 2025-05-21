@@ -390,89 +390,51 @@ public class Board {
         return hValue;
     }
 
-    // In Board.java
-
-    /**
-     * Menghitung heuristik Manhattan Distance untuk mobil utama.
-     * Ini adalah estimasi jumlah langkah minimum yang dibutuhkan mobil utama
-     * untuk mencapai pintu keluar jika tidak ada mobil lain yang menghalangi.
-     * Heuristik ini admissible.
-     * @return Nilai heuristik Manhattan Distance.
-     */
     public int calculateManhattanDistanceHeuristic() {
         Piece primaryPiece = this.getPieceById('P');
 
         if (primaryPiece == null) {
             System.err.println("Error di Manhattan Distance heuristic: Primary piece 'P' tidak ditemukan!");
-            return Integer.MAX_VALUE; // Nilai yang sangat besar jika 'P' tidak ada
+            return Integer.MAX_VALUE; 
         }
 
         if (this.isGoalState()) {
-            return 0; // Tidak ada biaya jika sudah di goal state
         }
 
         int distance = 0;
 
         if (primaryPiece.getOrientation() == Orientation.HORIZONTAL) {
-            // Mobil utama bergerak horizontal. Pintu keluar harus berada di baris yang sama.
-            // Asumsi: primaryPiece.getY() == this.exitY (sudah divalidasi oleh FileParser dan logika game)
-
-            // Jika pintu keluar ada di sebelah kanan mobil utama (mobil perlu bergerak ke kanan)
             if (this.exitX > (primaryPiece.getX() + primaryPiece.getLength() - 1)) {
                 distance = this.exitX - (primaryPiece.getX() + primaryPiece.getLength() - 1);
             }
-            // Jika pintu keluar ada di sebelah kiri mobil utama (mobil perlu bergerak ke kiri)
             else if (this.exitX < primaryPiece.getX()) {
                 distance = primaryPiece.getX() - this.exitX;
             }
-            // Jika mobil utama sudah berada di kolom pintu keluar tetapi belum keluar (misalnya, panjangnya > 1 dan baru sebagian masuk)
-            // atau jika pintu keluar berada di antara bagian depan dan belakang mobil.
-            // Namun, isGoalState() akan menangani kasus ketika mobil sudah benar-benar keluar.
-            // Untuk heuristik ini, jika sudah sejajar dan belum goal, maka jaraknya dianggap 0 untuk pergerakan mobil itu sendiri,
-            // karena mobil sudah "di" kolom/baris yang benar. Atau kita bisa anggap 1 jika belum sepenuhnya keluar.
-            // Mengikuti logika jarak tepi terdekat ke pintu keluar:
             else if (this.exitX == 0) { // Pintu keluar di paling kiri
-                distance = primaryPiece.getX(); // Jarak tepi kiri mobil ke kolom 0
+                distance = primaryPiece.getX(); 
             } else if (this.exitX == this.cols - 1) { // Pintu keluar di paling kanan
-                // Jarak tepi kanan mobil (getX() + getLength() - 1) ke kolom exitX
                 distance = this.exitX - (primaryPiece.getX() + primaryPiece.getLength() - 1);
             } else {
-                // Kasus ini berarti mobil utama sudah mencakup/melewati kolom exit,
-                // tapi belum goal state. Jaraknya untuk "sampai" ke exit cell adalah 0.
-                // Atau, jika ini adalah kasus dimana mobil merah sejajar dengan K,
-                // tapi K ada di tengah mobil, heuristik ini mungkin tidak menangkapnya dengan baik.
-                // Untuk konsistensi dengan "jarak ke tepi":
-                // Jika pintu keluar di kanan mobil atau sejajar ujung kanan:
                 if(this.exitX >= primaryPiece.getX() + primaryPiece.getLength() - 1){
                     distance = this.exitX - (primaryPiece.getX() + primaryPiece.getLength() - 1);
                 }
-                // Jika pintu keluar di kiri mobil atau sejajar ujung kiri:
                 else if (this.exitX <= primaryPiece.getX()){
                     distance = primaryPiece.getX() - this.exitX;
                 } else {
-                    // Mobil melintasi kolom exit, tapi belum keluar. Jarak bisa dianggap 0 atau 1.
-                    // Untuk simplisitas, jika sudah di kolom yang tepat, anggap 0 untuk heuristik ini.
                     distance = 0;
                 }
             }
 
         } else { // Primary piece is VERTICAL
-            // Mobil utama bergerak vertikal. Pintu keluar harus berada di kolom yang sama.
-            // Asumsi: primaryPiece.getX() == this.exitX
-
-            // Jika pintu keluar ada di bawah mobil utama (mobil perlu bergerak ke bawah)
             if (this.exitY > (primaryPiece.getY() + primaryPiece.getLength() - 1)) {
                 distance = this.exitY - (primaryPiece.getY() + primaryPiece.getLength() - 1);
             }
-            // Jika pintu keluar ada di atas mobil utama (mobil perlu bergerak ke atas)
             else if (this.exitY < primaryPiece.getY()) {
                 distance = primaryPiece.getY() - this.exitY;
             }
-            // Logika serupa untuk kasus sejajar vertikal
             else if (this.exitY == 0) { // Pintu keluar di paling atas
-                distance = primaryPiece.getY(); // Jarak tepi atas mobil ke baris 0
+                distance = primaryPiece.getY(); 
             } else if (this.exitY == this.rows - 1) { // Pintu keluar di paling bawah
-                // Jarak tepi bawah mobil (getY() + getLength() - 1) ke baris exitY
                 distance = this.exitY - (primaryPiece.getY() + primaryPiece.getLength() - 1);
             } else {
                 if(this.exitY >= primaryPiece.getY() + primaryPiece.getLength() - 1){
@@ -485,7 +447,6 @@ public class Board {
                 }
             }
         }
-        // Pastikan jarak tidak negatif (seharusnya tidak terjadi dengan logika di atas)
         return Math.max(0, distance);
     }
 }
